@@ -1,0 +1,170 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX 50
+
+// Product Structure
+struct Product {
+    int id;
+    char name[20];
+    int price;
+    int quantity;
+};
+
+// Queue Structure
+struct Queue {
+    int items[MAX];
+    int front, rear;
+};
+
+// Function prototypes
+void initializeQueue(struct Queue *q);
+int isFull(struct Queue *q);
+int isEmpty(struct Queue *q);
+void enqueue(struct Queue *q, int value);
+int dequeue(struct Queue *q);
+void showProducts(struct Product p[], int n);
+void processOrder(struct Queue *q, struct Product p[], int n);
+
+int main() {
+    struct Queue q;
+    initializeQueue(&q);
+
+    // Product List
+    struct Product products[3] = {
+        {1, "Chips", 20, 10},
+        {2, "Soda", 30, 10},
+        {3, "Chocolate", 25, 10}
+    };
+
+    int choice, product_id;
+
+    while (1) {
+        printf("\n==== VENDING MACHINE ====\n");
+        printf("1. Show Products\n");
+        printf("2. Order Product\n");
+        printf("3. Process Next Order\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+        case 1:
+            showProducts(products, 3);
+            break;
+
+        case 2:
+            showProducts(products, 3);
+            printf("Enter Product ID to order: ");
+            scanf("%d", &product_id);
+
+            if (product_id < 1 || product_id > 3) {
+                printf("Invalid Product ID!\n");
+            } else {
+                enqueue(&q, product_id);
+                printf("Order added to queue!\n");
+            }
+            break;
+
+        case 3:
+            processOrder(&q, products, 3);
+            break;
+
+        case 4:
+            printf("Thank you! Have a nice day.\n");
+            exit(0);
+
+        default:
+            printf("Invalid Choice!\n");
+        }
+    }
+    return 0;
+}
+
+// Queue Functions
+void initializeQueue(struct Queue *q) {
+    q->front = -1;
+    q->rear = -1;
+}
+
+int isFull(struct Queue *q) {
+    return q->rear == MAX - 1;
+}
+
+int isEmpty(struct Queue *q) {
+    return q->front == -1;
+}
+
+void enqueue(struct Queue *q, int value) {
+    if (isFull(q)) {
+        printf("Queue is full! Cannot add more orders.\n");
+        return;
+    }
+
+    if (q->front == -1)
+        q->front = 0;
+
+    q->rear++;
+    q->items[q->rear] = value;
+}
+
+int dequeue(struct Queue *q) {
+    if (isEmpty(q)) {
+        return -1;
+    }
+
+    int item = q->items[q->front];
+
+    if (q->front >= q->rear) {
+        q->front = q->rear = -1; // Reset queue
+    } else {
+        q->front++;
+    }
+    return item;
+}
+
+// Display Products
+void showProducts(struct Product p[], int n) {
+    printf("\n=== Available Products ===\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d. %s - Rs %d (Stock: %d)\n",
+               p[i].id, p[i].name, p[i].price, p[i].quantity);
+    }
+}
+
+// Process Orders
+void processOrder(struct Queue *q, struct Product p[], int n) {
+    if (isEmpty(q)) {
+        printf("No orders in queue!\n");
+        return;
+    }
+
+    int id = dequeue(q);
+    struct Product *prod = &p[id - 1];
+
+    if (prod->quantity <= 0) {
+        printf("%s is OUT OF STOCK!\n", prod->name);
+        return;
+    }
+
+    printf("\nProcessing order for: %s\n", prod->name);
+    printf("Price: Rs %d\n", prod->price);
+
+    int money;
+    printf("Insert money: ");
+    scanf("%d", &money);
+
+    if (money < prod->price) {
+        printf("Insufficient amount! Order cancelled.\n");
+        return;
+    }
+
+    prod->quantity--;
+
+    printf("Dispensing %s...\n", prod->name);
+
+    int change = money - prod->price;
+    printf("Change Returned: Rs %d\n", change);
+    printf("Order Completed Successfully!\n");
+}
